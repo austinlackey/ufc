@@ -6,12 +6,30 @@ from datetime import datetime, date, time
 import re
 import colors as c
 from tqdm import tqdm
+import string
 
 print(c.Color.RED + "UFC Scraper" + c.Color.RESET)
 
-def scrape(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
+def scrapeFighters(numTestFighters=-1, printData=False):
     # Initialize Dataframes
     fighterData = pd.DataFrame() # Fighter Specific Data
+    fightersPagePrefix = 'http://www.ufcstats.com/statistics/fighters?char='
+    fightersPagePostfix = '&page=all'
+    if numTestFighters < 0:
+        print(c.Color.YELLOW + "SCRAPING ALL FIGHTERS: THIS WILL TAKE A LONG TIME" + c.Color.RESET)
+    else:
+        print(c.Color.YELLOW + "SCRAPING " + str(numTestFighters) + " FIGHTERS" + c.Color.RESET)
+    letters = list(string.ascii_lowercase)
+    for letter in letters:
+        currentPage = fightersPagePrefix + letter + fightersPagePostfix
+        print(currentPage)
+    
+
+scrapeFighters(numTestFighters=5)
+
+
+def scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
+    # Initialize Dataframes
     overallFightData = pd.DataFrame() # Overall Fight Data
     roundByRoundFightData = pd.DataFrame() # Round by Round Fight Data
     fightInformation = pd.DataFrame() # Basic Fight Data
@@ -29,7 +47,6 @@ def scrape(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
     else:
         print(c.Color.YELLOW + "SCRAPING " + str(numTestEvents) + " EVENTS WITH " + str(numTestFights) + " FIGHTS EACH" + c.Color.RESET)
     eventsPage = 'http://www.ufcstats.com/statistics/events/completed?page=all'
-    fightersPage = 'http://www.ufcstats.com/statistics/fighters?char=a&page=all'
 
     # Event Page Information
     page = requests.get(eventsPage)
@@ -44,7 +61,7 @@ def scrape(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
         page = requests.get(eventLink)
         soup = BeautifulSoup(page.content, 'html.parser')
         eventTitle = soup.find('span', class_='b-content__title-highlight').get_text().strip() # Event Title
-        eventBar.set_description(c.Color.BLUE + eventTitle + c.Color.RESET)
+        eventBar.set_description(c.Color.BLUE + eventTitle.ljust(80) + c.Color.RESET)
         eventInfo = soup.find_all('li', class_='b-list__box-list-item')
         eventInfo = [info.get_text().replace('\n', '').replace('Date:', '').replace('Location:', '').strip() for info in eventInfo]
         eventDate = datetime.strptime(eventInfo[0], '%B %d, %Y') # Event Date
@@ -79,7 +96,7 @@ def scrape(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
             fighterNames = [name.get_text().strip() for name in fighterNames] # Grab Fighter Names from Tag
             fighterA_Name, fighterB_Name = fighterNames # Split Fighter Names into A/B
             fightTitle = fighterA_Name + ' vs. ' + fighterB_Name # Concatenate Fighter Names for Fight Title
-            fightBar.set_description(c.Color.CYAN + fightTitle + c.Color.RESET)
+            fightBar.set_description(c.Color.CYAN + fightTitle.ljust(80) + c.Color.RESET)
             # print(c.Color.LIGHT_BLUE + "    " + fightTitle + c.Color.RESET)
             # Fight Information
             fightBout = soup.find('i', class_='b-fight-details__fight-title').get_text().strip() # Fight Bout (Light/Heavyweight, etc.)
@@ -181,15 +198,15 @@ def loadData():
     return overallFightData, roundByRoundFightData, fightInformation
 
 # CONTROL PANEL
-removeFightInformation(['UFC Fight Night: Fiziev vs. Gamrot', 'UFC Fight Night: Grasso vs. Shevchenko 2'])
-overallFightData, roundByRoundFightData, fightInformation = scrape(numTestEvents=10, numTestFights=-1, printData=False, update=False)
-print(fightInformation)
-saveData(overallFightData, roundByRoundFightData, fightInformation)
-overallFightData, roundByRoundFightData, fightInformation = loadData()
+# removeFightInformation(['UFC Fight Night: Fiziev vs. Gamrot', 'UFC Fight Night: Grasso vs. Shevchenko 2'])
+# overallFightData, roundByRoundFightData, fightInformation = scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=False)
+# print(fightInformation)
+# saveData(overallFightData, roundByRoundFightData, fightInformation)
+# overallFightData, roundByRoundFightData, fightInformation = loadData()
 
-print(c.Color.GREEN + "Overall Fight Data" + c.Color.RESET)
-print(overallFightData)
-print(c.Color.GREEN + "Round by Round Fight Data" + c.Color.RESET)
-print(roundByRoundFightData)
-print(c.Color.GREEN + "Fight Information" + c.Color.RESET)
-print(fightInformation)
+# print(c.Color.GREEN + "Overall Fight Data" + c.Color.RESET)
+# print(overallFightData)
+# print(c.Color.GREEN + "Round by Round Fight Data" + c.Color.RESET)
+# print(roundByRoundFightData)
+# print(c.Color.GREEN + "Fight Information" + c.Color.RESET)
+# print(fightInformation)
