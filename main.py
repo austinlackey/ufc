@@ -10,22 +10,37 @@ import string
 
 print(c.Color.RED + "UFC Scraper" + c.Color.RESET)
 
-def scrapeFighters(numTestFighters=-1, printData=False):
+def scrapeFighters(numTestFighterPages=-1, printData=False):
     # Initialize Dataframes
     fighterData = pd.DataFrame() # Fighter Specific Data
     fightersPagePrefix = 'http://www.ufcstats.com/statistics/fighters?char='
     fightersPagePostfix = '&page=all'
-    if numTestFighters < 0:
+    if numTestFighterPages < 0:
         print(c.Color.YELLOW + "SCRAPING ALL FIGHTERS: THIS WILL TAKE A LONG TIME" + c.Color.RESET)
+        letters = list(string.ascii_lowercase)
     else:
-        print(c.Color.YELLOW + "SCRAPING " + str(numTestFighters) + " FIGHTERS" + c.Color.RESET)
-    letters = list(string.ascii_lowercase)
-    for letter in letters:
+        letters = list(string.ascii_lowercase)[0:numTestFighterPages]
+        print(c.Color.YELLOW + "SCRAPING " + str(numTestFighterPages) + " FIGHTER PAGES: " + letters[0].upper() + "-" + letters[-1].upper() + c.Color.RESET)
+    fighterBar = tqdm(letters, desc='Fighter Pages', unit='pages')
+    for letter in fighterBar:
+        fighterBar.set_description(c.Color.BLUE + "Fighter Page: " + letter.upper().ljust(3) + c.Color.RESET)
         currentPage = fightersPagePrefix + letter + fightersPagePostfix
-        print(currentPage)
-    
-
-scrapeFighters(numTestFighters=5)
+        page = requests.get(currentPage)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        # Get the table with b-statistics__table tag
+        table = soup.find('table', class_='b-statistics__table')
+        # convert table to dataframe
+        table = pd.read_html(str(table))[0]
+        table = table.iloc[1::]
+        table.columns = ['First', 'Last', 'Nickname', 'Height', 'Weight', 'Reach', 'Stance', 'Win', 'Loss', 'Draw', 'Belt']
+        fighterData = pd.concat([fighterData, table], axis=0)
+        if printData:
+            print(letter.upper(), table.shape)
+    fighterData = fighterData.reset_index(drop=True)
+    print(len(letters), "Fighter Pages Scraped")
+    print(len(fighterData), "Fighters Scraped")
+    print(c.Color.MAGENTA + "DONE - SCRAPED ALL FIGHTER DATA" + c.Color.RESET)
+    return fighterData
 
 
 def scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=False):
@@ -61,7 +76,7 @@ def scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=Fal
         page = requests.get(eventLink)
         soup = BeautifulSoup(page.content, 'html.parser')
         eventTitle = soup.find('span', class_='b-content__title-highlight').get_text().strip() # Event Title
-        eventBar.set_description(c.Color.BLUE + eventTitle.ljust(80) + c.Color.RESET)
+        eventBar.set_description(c.Color.BLUE + eventTitle.ljust(60) + c.Color.RESET)
         eventInfo = soup.find_all('li', class_='b-list__box-list-item')
         eventInfo = [info.get_text().replace('\n', '').replace('Date:', '').replace('Location:', '').strip() for info in eventInfo]
         eventDate = datetime.strptime(eventInfo[0], '%B %d, %Y') # Event Date
@@ -96,7 +111,7 @@ def scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=Fal
             fighterNames = [name.get_text().strip() for name in fighterNames] # Grab Fighter Names from Tag
             fighterA_Name, fighterB_Name = fighterNames # Split Fighter Names into A/B
             fightTitle = fighterA_Name + ' vs. ' + fighterB_Name # Concatenate Fighter Names for Fight Title
-            fightBar.set_description(c.Color.CYAN + fightTitle.ljust(80) + c.Color.RESET)
+            fightBar.set_description(c.Color.CYAN + fightTitle.ljust(60) + c.Color.RESET)
             # print(c.Color.LIGHT_BLUE + "    " + fightTitle + c.Color.RESET)
             # Fight Information
             fightBout = soup.find('i', class_='b-fight-details__fight-title').get_text().strip() # Fight Bout (Light/Heavyweight, etc.)
@@ -171,14 +186,19 @@ def scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=Fal
             roundByRoundFightData = pd.concat([roundByRoundFightData, round_by_round], axis=0)
             fightInformation = pd.concat([fightInformation, fight_information], axis=0)
     print(c.Color.MAGENTA + "DONE - SCRAPED ALL UFC DATA" + c.Color.RESET)
-    print(len(fightInformation), "Fights Scraped")
     print(len(roundByRoundFightData['Event'].unique()), "Events Scraped")
+    print(len(fightInformation), "Total Fights Scraped")
     return overallFightData.reset_index(drop=True), roundByRoundFightData.reset_index(drop=True), fightInformation.reset_index(drop=True)
-def saveData(overallFightData, roundByRoundFightData, fightInformation):
+def saveData(overallFightData = None, roundByRoundFightData = None, fightInformation = None, fighterData = None):
     print(c.Color.GREEN + "SAVING DATA" + c.Color.RESET)
-    overallFightData.to_csv('Data/overallFightData.csv', index=False)
-    roundByRoundFightData.to_csv('Data/roundByRoundFightData.csv', index=False)
-    fightInformation.to_csv('Data/fightInformation.csv', index=False)
+    if overallFightData is not None:
+        overallFightData.to_csv('Data/overallFightData.csv', index=False)
+    if roundByRoundFightData is not None:
+        roundByRoundFightData.to_csv('Data/roundByRoundFightData.csv', index=False)
+    if fightInformation is not None:
+        fightInformation.to_csv('Data/fightInformation.csv', index=False)
+    if fighterData is not None:
+        fighterData.to_csv('Data/fighterData.csv', index=False)
 def removeFightInformation(eventTitle):
     overallFightData = pd.read_csv('Data/overallFightData.csv')
     roundByRoundFightData = pd.read_csv('Data/roundByRoundFightData.csv')
@@ -198,15 +218,17 @@ def loadData():
     return overallFightData, roundByRoundFightData, fightInformation
 
 # CONTROL PANEL
+overallFightData, roundByRoundFightData, fightInformation, fighterData = None, None, None, None
 # removeFightInformation(['UFC Fight Night: Fiziev vs. Gamrot', 'UFC Fight Night: Grasso vs. Shevchenko 2'])
-# overallFightData, roundByRoundFightData, fightInformation = scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=False)
-# print(fightInformation)
-# saveData(overallFightData, roundByRoundFightData, fightInformation)
-# overallFightData, roundByRoundFightData, fightInformation = loadData()
+overallFightData, roundByRoundFightData, fightInformation = scrapeFights(numTestEvents=-1, numTestFights=-1, printData=False, update=False)
+# fighterData = scrapeFighters(numTestFighterPages=-1, printData=False)
+saveData(overallFightData, roundByRoundFightData, fightInformation, fighterData)
 
-# print(c.Color.GREEN + "Overall Fight Data" + c.Color.RESET)
-# print(overallFightData)
-# print(c.Color.GREEN + "Round by Round Fight Data" + c.Color.RESET)
-# print(roundByRoundFightData)
-# print(c.Color.GREEN + "Fight Information" + c.Color.RESET)
-# print(fightInformation)
+print(c.Color.GREEN + "Overall Fight Data" + c.Color.RESET)
+print(overallFightData)
+print(c.Color.GREEN + "Round by Round Fight Data" + c.Color.RESET)
+print(roundByRoundFightData)
+print(c.Color.GREEN + "Fight Information" + c.Color.RESET)
+print(fightInformation)
+print(c.Color.GREEN + "Fighter Data" + c.Color.RESET)
+print(fighterData)
