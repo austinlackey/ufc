@@ -11,11 +11,22 @@ import string
 print(c.Color.RED + "UFC Scraper v2.0" + c.Color.RESET)
 domain = "https://www.ufc.com"
 
+def cleanName(string):
+    string = string.replace('\n', ' ').strip()
+    return string
+
+def cleanEventName(arr):
+    arr = [arr.text for arr in arr]
+    arr = [arr.replace('\n', ' ').strip() for arr in arr]
+    arr = [arr for arr in arr if arr != '']
+    arr = [re.sub(r'\s+', ' ', arr) for arr in arr]
+    arr = ': '.join(arr)
+    return arr
+
 def cleanString(string):
     # remove newlines and trailing spaces
     string = string.replace('\n', '').strip()
     return string
-
 def cleanStrings(arr):
     # remove newlines and trailing spaces
     arr = [string.replace('\n', '').strip() for string in arr]
@@ -131,6 +142,34 @@ def extractEventStats(eventURL):
     domain = "https://www.ufc.com"
     page = requests.get(domain + eventURL)
     soup = BeautifulSoup(page.content, 'html.parser')
+    eventName = cleanEventName(soup.find('div', class_='c-hero__header'))
+    print(eventName)
+    eventInfo = cleanString(soup.find('div', class_='c-hero__bottom-text').find('div', class_='c-hero__headline-suffix tz-change-inner').text)
+    eventDate, eventTime = eventInfo.split(' / ')
+    print(eventDate)
+    print(eventTime)
+    # Extract section elements with the tag "l-listing--stacked--full-width"
+    mainCard = soup.find('div', class_='main-card', id='main-card')
+    stacks = mainCard.find('section', class_='l-listing--stacked--full-width')
+    fights = stacks.find_all('li', class_='l-listing__item')
+
+    for fight in fights:
+        redCornerOutcome = cleanString(fight.find('div', class_='c-listing-fight__corner--red').find('div', class_='c-listing-fight__outcome-wrapper').text)
+        fightOutcome = 'Red' if redCornerOutcome == 'Win' else 'Blue' if redCornerOutcome == 'Loss' else 'Draw'
+        print("Winner:", fightOutcome)
+        redCornerName = cleanName(fight.find('div', class_='c-listing-fight__corner-name c-listing-fight__corner-name--red').text)
+        blueCornerName = cleanName(fight.find('div', class_='c-listing-fight__corner-name c-listing-fight__corner-name--blue').text)
+        print(redCornerName + " vs " + blueCornerName)
+        round = fight.find('div', class_='c-listing-fight__result-text round').text
+        time = fight.find('div', class_='c-listing-fight__result-text time').text
+        method = fight.find('div', class_='c-listing-fight__result-text method').text
+        print(round + " " + time + " " + method)
+        oddsWrapper = fight.find('div', class_='c-listing-fight__odds-wrapper')
+        odds = oddsWrapper.find_all('span', class_='c-listing-fight__odds-amount')
+        odds = [odd.text for odd in odds]
+        redOdds, blueOdds = odds
+        print(odds)
+
 
 def scrapeEvents(testPages = -1, testEvents = -1):
     eventListURL_Base = "https://www.ufc.com/events?page="
@@ -197,4 +236,4 @@ def scrapeFighters(testPages = -1, testFighters = -1):
 # Fighters_DF = scrapeFighters(testPages=3, testFighters=-1)
 # print(Fighters_DF)
 
-Events_DF = scrapeEvents(testPages=1, testEvents=1)
+Events_DF = scrapeEvents(testPages=1, testEvents=2)
