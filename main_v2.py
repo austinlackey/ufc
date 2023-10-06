@@ -196,6 +196,8 @@ def scrapeEvents(testEvents = -1, testFights = -1):
             fightLinks = fightLinks[:testFights]
         for fight in fightLinks:
             soup = BeautifulSoup(requests.get(fight).content, 'html.parser')
+            if "Round-by-round stats not currently available." in soup.text:
+                continue
             nameSection = soup.find('div', class_='b-fight-details__persons clearfix')
             winner = nameSection.find_all('div', class_='b-fight-details__person')[0].find('i', class_='b-fight-details__person-status b-fight-details__person-status_style_gray')
             winner = "A" if winner == None else "B"
@@ -207,6 +209,7 @@ def scrapeEvents(testEvents = -1, testFights = -1):
             fighterA_name, fighterB_name = [cleanName(name.text) for name in names]
             winnerName = fighterA_name if winner == "A" else fighterB_name
             fightTitle = fighterA_name + " vs. " + fighterB_name
+            print(fightTitle)
             fightBout = cleanString(soup.find('i', class_='b-fight-details__fight-title').text)
             fightInfo = soup.find('div', class_='b-fight-details__content')
             fightInfo = [info.text.split('\n') for info in fightInfo] # split by newlines
@@ -307,10 +310,10 @@ def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
 
 
 # CONTROL PANEL
-Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
-Fighters_DF.to_csv('Data/fighters.csv', index=False)
+# Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
+# Fighters_DF.to_csv('Data/fighters.csv', index=False)
 
-fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=2, testFights=-14)
+fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=-1, testFights=-1)
 print(fightInformation)
 print(fightTotals)
 print(FightRounds)
