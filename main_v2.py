@@ -34,7 +34,7 @@ def cleanStrings(arr):
     # arr = [string for string in arr if string != '']
     return arr
 def downloadImage (url, name):
-    print("Downloading " + name + "'s" + " image")
+    # print("Downloading " + name + "'s" + " image")
     name = 'images/' + name + '.jpg'
     response = requests.get(url)
     with open(name, 'wb') as f:
@@ -308,12 +308,12 @@ def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
 
 # CONTROL PANEL
 Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
-Fighters_DF.to_csv('fighters.csv', index=False)
+Fighters_DF.to_csv('Data/fighters.csv', index=False)
 
-# fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=20, testFights=1)
-# print(fightInformation)
-# print(fightTotals)
-# print(FightRounds)
-# fightInformation.to_csv('fightInformation.csv', index=False)
-# fightTotals.to_csv('fightTotals.csv', index=False)
-# FightRounds.to_csv('FightRounds.csv', index=False)
+fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=2, testFights=-14)
+print(fightInformation)
+print(fightTotals)
+print(FightRounds)
+fightInformation.to_csv('Data/fightInformation.csv', index=False)
+fightTotals.to_csv('Data/fightTotals.csv', index=False)
+FightRounds.to_csv('Data/FightRounds.csv', index=False)
