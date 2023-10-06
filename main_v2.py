@@ -33,8 +33,39 @@ def cleanStrings(arr):
     # remove empty strings
     # arr = [string for string in arr if string != '']
     return arr
-
-def extractFighterStats(fighterURL):
+def downloadImage (url, name):
+    print("Downloading " + name + "'s" + " image")
+    name = 'images/' + name + '.jpg'
+    response = requests.get(url)
+    with open(name, 'wb') as f:
+        f.write(response.content)
+def extractFighterBio(bioElements, fighterData):
+    bioElements = [bio.text.split('\n') for bio in bioElements] # split by newlines
+    bioElements = [item for sublist in bioElements for item in sublist] # flatten the list
+    bioElements = [bio.strip() for bio in bioElements] # remove trailing spaces
+    for bioNum in range(0, len(bioElements)):
+        if bioElements[bioNum] == 'Status':
+            fighterData.update({'Status': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Place of Birth':
+            fighterData.update({'Place_of_Birth': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Age':
+            fighterData.update({'Age': bioElements[bioNum + 2]})
+        if bioElements[bioNum] == 'Height':
+            fighterData.update({'Height': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Weight':
+            fighterData.update({'Weight': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Octagon Debut':
+            fighterData.update({'Octagon_Debut': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Reach':
+            fighterData.update({'Reach': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Leg Reach':
+            fighterData.update({'Leg_Reach': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Trains at':
+            fighterData.update({'Trains_at': bioElements[bioNum + 1]})
+        if bioElements[bioNum] == 'Fighting style':
+            fighterData.update({'Fighting_Style': bioElements[bioNum + 1]})
+    return bioElements, fighterData
+def extractFighterStats(fighterURL, downloadImages = False):
     # extract the p class "hero-profile__tag"
     page = requests.get(domain + fighterURL)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -69,22 +100,8 @@ def extractFighterStats(fighterURL):
 
     # BIO Elements at the bottom of the page
     bioElements = soup.find('div', class_='c-tabs__panes')
-    bioElements = [bio.text.split('\n') for bio in bioElements] # split by newlines
-    bioElements = [item for sublist in bioElements for item in sublist] # flatten the list
-    bioElements = [bio.strip() for bio in bioElements] # remove trailing spaces
-    for bioNum in range(0, len(bioElements)):
-        if bioElements[bioNum] == 'Status':
-            fighterData.update({'Status': bioElements[bioNum + 1]})
-        if bioElements[bioNum] == 'Place of Birth':
-            fighterData.update({'Place_of_Birth': bioElements[bioNum + 1]})
-        if bioElements[bioNum] == 'Age':
-            fighterData.update({'Age': bioElements[bioNum + 2]})
-        if bioElements[bioNum] == 'Height':
-            fighterData.update({'Height': bioElements[bioNum + 1]})
-        if bioElements[bioNum] == 'Weight':
-            fighterData.update({'Weight': bioElements[bioNum + 1]})
-        if bioElements[bioNum] == 'Octagon Debut':
-            fighterData.update({'Octagon_Debut': bioElements[bioNum + 1]})
+    bioElements, fighterData = extractFighterBio(bioElements, fighterData)
+
 
     # STAT Elements in the middle of the page
     stat_cards = soup.find_all('div', class_=['stats-records stats-records--two-column', 'stats-records stats-records--three-column'])
@@ -134,75 +151,132 @@ def extractFighterStats(fighterURL):
             fighterData.update({'DEC': stat_cards[cardNum + 1].split('(')[0].strip()})
         if stat_cards[cardNum] == 'SUB':
             fighterData.update({'SUB': stat_cards[cardNum + 1].split('(')[0].strip()})
-    # print(fighterData)
-    # print(len(fighterData))
-    return fighterData
-            
-def extractEventStats(eventURL):
-    domain = "https://www.ufc.com"
-    page = requests.get(domain + eventURL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    eventName = cleanEventName(soup.find('div', class_='c-hero__header'))
-    print(eventName)
-    eventInfo = cleanString(soup.find('div', class_='c-hero__bottom-text').find('div', class_='c-hero__headline-suffix tz-change-inner').text)
-    eventDate, eventTime = eventInfo.split(' / ')
-    print(eventDate)
-    print(eventTime)
-    # Extract section elements with the tag "l-listing--stacked--full-width"
-    mainCard = soup.find('div', class_='main-card', id='main-card')
-    stacks = mainCard.find('section', class_='l-listing--stacked--full-width')
-    fights = stacks.find_all('li', class_='l-listing__item')
-
-    for fight in fights:
-        redCornerOutcome = cleanString(fight.find('div', class_='c-listing-fight__corner--red').find('div', class_='c-listing-fight__outcome-wrapper').text)
-        fightOutcome = 'Red' if redCornerOutcome == 'Win' else 'Blue' if redCornerOutcome == 'Loss' else 'Draw'
-        print("Winner:", fightOutcome)
-        redCornerName = cleanName(fight.find('div', class_='c-listing-fight__corner-name c-listing-fight__corner-name--red').text)
-        blueCornerName = cleanName(fight.find('div', class_='c-listing-fight__corner-name c-listing-fight__corner-name--blue').text)
-        print(redCornerName + " vs " + blueCornerName)
-        round = fight.find('div', class_='c-listing-fight__result-text round').text
-        time = fight.find('div', class_='c-listing-fight__result-text time').text
-        method = fight.find('div', class_='c-listing-fight__result-text method').text
-        print(round + " " + time + " " + method)
-        oddsWrapper = fight.find('div', class_='c-listing-fight__odds-wrapper')
-        odds = oddsWrapper.find_all('span', class_='c-listing-fight__odds-amount')
-        odds = [odd.text for odd in odds]
-        redOdds, blueOdds = odds
-        print(odds)
-
-
-def scrapeEvents(testPages = -1, testEvents = -1):
-    eventListURL_Base = "https://www.ufc.com/events?page="
-    eventListURL_start = "https://www.ufc.com/events"
-    page = requests.get(eventListURL_start)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    eventData = []
-    # Number of events/pages
-    if testPages == -1:
-        numEvents = int(re.findall(r'\d+', soup.find_all('div', class_='althelete-total')[1].text)[0]) # number of events
-        numPages = (numEvents // 8) - 1 if (numEvents % 8) == 0 else (numEvents // 8 ) # 12 events per page (starting at pg 0)
-        print(str(numEvents) + " events\n" + str(numPages) + " pages")
+    # if there is a div with the class hero-profile__image-wrap then find the img tag and extract the src attribute, otherwise set to None
+    fighterProfileImage = soup.find('div', class_='hero-profile__image-wrap')
+    if fighterProfileImage != None:
+        fighterProfileImage = fighterProfileImage.find('img', class_='hero-profile__image')['src']
+        if downloadImages:
+            downloadImage(fighterProfileImage, fighterData['Name'])
+        fighterData.update({'hasImage': True})
     else:
-        print("Testing " + str(testPages) + " pages")
-        numPages = testPages - 1
-    pageBar = tqdm(np.arange(0, numPages + 1), desc="Pages", unit='pages') # progress bar
-    # Loop through all pages
-    for pageNum in pageBar:
-        currentURL = eventListURL_Base + str(pageNum)
-        page = requests.get(currentURL)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        links = [link.get('href') for link in soup.select('h3.c-card-event--result__headline a[href]')] # extract href links from buttons
-        if pageNum == 0: # first page contains 7 upcoming events that have not happened yet
-            links = links[7:]
-        if testEvents != -1:
-            links = links[:testEvents]
-        for link in links:
-            updateString = "Page: " + str(pageNum) + " - Event: " + link.split("/")[-1].upper()
-            pageBar.set_description(c.Color.BLUE + updateString.ljust(50) + c.Color.RESET)
-            eventData.append(extractEventStats(link))
-    return pd.DataFrame(eventData)
-
-def scrapeFighters(testPages = -1, testFighters = -1):
+        fighterProfileImage = None
+        fighterData.update({'hasImage': False})
+    return fighterData
+def scrapeEvents(testEvents = -1, testFights = -1):
+    URL = "http://www.ufcstats.com/statistics/events/completed?page=all"
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    upcomingEvents = soup.find_all('img', class_='b-statistics__icon') # List of upcoming events
+    eventLinks = [link.get('href') for link in soup.find('table', class_='b-statistics__table-events').find_all('a')] # All event links
+    eventLinks = eventLinks[len(upcomingEvents):] # Remove upcoming events from list
+    if testEvents == -1:
+        numEvents = len(eventLinks)
+        print(str(numEvents) + " events")
+    else:
+        print("Testing " + str(testEvents) + " pages")
+        eventLinks = eventLinks[:testEvents]
+    eventBar = tqdm(eventLinks, desc="Events", unit='events') # progress bar
+    eventFightInformation, eventFightTotals, eventFightRounds = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    for event in eventBar:
+        soup = BeautifulSoup(requests.get(event).content, 'html.parser')
+        eventTitle = cleanString(soup.find('span', class_='b-content__title-highlight').text)
+        eventBar.set_description(c.Color.BLUE + eventTitle.ljust(50) + c.Color.RESET)
+        eventInfo = soup.find('div', class_='b-list__info-box b-list__info-box_style_large-width')
+        eventInfo = [info.text.split('\n') for info in eventInfo] # split by newlines
+        eventInfo = cleanStrings([item for sublist in eventInfo for item in sublist]) # flatten the list
+        eventInfo = [info for info in eventInfo if info != ''] # remove empty strings
+        eventDate, eventLocation = None, None
+        for item in np.arange(0, len(eventInfo)):
+            if eventInfo[item] == 'Date:':
+                eventDate = eventInfo[item + 1]
+            if eventInfo[item] == 'Location:':
+                eventLocation = eventInfo[item + 1]
+        fightLinks = [link.get('href') for link in soup.find_all('a', class_='b-flag b-flag_style_green')]
+        if testFights != -1:
+            fightLinks = fightLinks[:testFights]
+        for fight in fightLinks:
+            soup = BeautifulSoup(requests.get(fight).content, 'html.parser')
+            nameSection = soup.find('div', class_='b-fight-details__persons clearfix')
+            winner = nameSection.find_all('div', class_='b-fight-details__person')[0].find('i', class_='b-fight-details__person-status b-fight-details__person-status_style_gray')
+            winner = "A" if winner == None else "B"
+            names = nameSection.find_all('h3', class_='b-fight-details__person-name')
+            nicknames = nameSection.find_all('p', class_='b-fight-details__person-title')
+            fighterA_nickname, fighterB_nickname = [cleanName(nickname.text) for nickname in nicknames]
+            fighterA_nickname = None if fighterA_nickname == '' else fighterA_nickname
+            fighterB_nickname = None if fighterB_nickname == '' else fighterB_nickname
+            fighterA_name, fighterB_name = [cleanName(name.text) for name in names]
+            winnerName = fighterA_name if winner == "A" else fighterB_name
+            fightTitle = fighterA_name + " vs. " + fighterB_name
+            fightBout = cleanString(soup.find('i', class_='b-fight-details__fight-title').text)
+            fightInfo = soup.find('div', class_='b-fight-details__content')
+            fightInfo = [info.text.split('\n') for info in fightInfo] # split by newlines
+            fightInfo = cleanStrings([item for sublist in fightInfo for item in sublist]) # flatten the list
+            fightInfo = [info for info in fightInfo if info != ''] # remove empty strings
+            fightMethod, fightRound, fightTime, fightFormat, fightReferee, fightDetails = None, None, None, None, None, None
+            for item in np.arange(0, len(fightInfo)):
+                if fightInfo[item] == 'Method:':
+                    fightMethod = fightInfo[item + 1]
+                if fightInfo[item] == 'Round:':
+                    fightRound = fightInfo[item + 1]
+                if fightInfo[item] == 'Time:':
+                    fightTime = fightInfo[item + 1]
+                if fightInfo[item] == 'Time format:':
+                    fightFormat = fightInfo[item + 1]
+                if fightInfo[item] == 'Referee:':
+                    fightReferee = fightInfo[item + 1]
+                if fightInfo[item] == 'Details:':
+                    fightDetails = ' '.join(fightInfo[item + 1:])
+            # Stats
+            tableData = soup.find_all('p', class_='b-fight-details__table-text')
+            tableData = [data.text.split('\n') for data in tableData] # split by newlines
+            tableData = cleanStrings([item for sublist in tableData for item in sublist]) # flatten the list
+            tableData = [data for data in tableData if data != ''] # remove empty strings
+            numberOfRows = tableData.count(tableData[0])
+            # Fight Totals
+            fightTotals = tableData[:(numberOfRows*10)]
+            fighterA_Totals = pd.DataFrame(np.array(fightTotals[::2]).reshape(-1, 10))
+            fighterA_Totals_Rnds = fighterA_Totals.iloc[1:]
+            fighterA_Totals_Rnds.insert(0, 'Round', np.arange(1, len(fighterA_Totals_Rnds) + 1))
+            fighterA_Totals = fighterA_Totals.iloc[[0]]
+            fighterB_Totals = pd.DataFrame(np.array(fightTotals[1::2]).reshape(-1, 10))
+            fighterB_Totals_Rnds = fighterB_Totals.iloc[1:]
+            fighterB_Totals_Rnds.insert(0, 'Round', np.arange(1, len(fighterB_Totals_Rnds) + 1))
+            fighterB_Totals = fighterB_Totals.iloc[[0]]
+            fightTotals = pd.concat([fighterA_Totals, fighterB_Totals], axis=0).reset_index(drop=True)
+            fightTotals.columns = ['Fighter', 'KD', 'Sig_Str', 'Sig_Str_Perc', 'Total_Str', 'TD', 'TD_Perc', 'Sub_Att', 'Rev', 'Ctrl']
+            fightTotals.insert(0, 'Fight', fightTitle)
+            fightTotals.insert(0, 'Event', eventTitle)
+            fightTotals_Rnds = pd.concat([fighterA_Totals_Rnds, fighterB_Totals_Rnds], axis=0).reset_index(drop=True)
+            fightTotals_Rnds.columns = ['Round', 'Fighter', 'KD', 'Sig_Str', 'Sig_Str_Perc', 'Total_Str', 'TD', 'TD_Perc', 'Sub_Att', 'Rev', 'Ctrl']
+            fightTotals_Rnds.insert(0, 'Fight', fightTitle)
+            fightTotals_Rnds.insert(0, 'Event', eventTitle)
+            # Significant Strikes
+            sigStrikes = tableData[(numberOfRows*10):]
+            fighterA_SigStrikes = pd.DataFrame(np.array(sigStrikes[::2]).reshape(-1, 9))
+            fighterA_SigStrikes_Rnds = fighterA_SigStrikes.iloc[1:]
+            fighterA_SigStrikes_Rnds.insert(0, 'Round', np.arange(1, len(fighterA_SigStrikes_Rnds) + 1))
+            fighterA_SigStrikes = fighterA_SigStrikes.iloc[[0]]
+            fighterB_SigStrikes = pd.DataFrame(np.array(sigStrikes[1::2]).reshape(-1, 9))
+            fighterB_SigStrikes_Rnds = fighterB_SigStrikes.iloc[1:]
+            fighterB_SigStrikes_Rnds.insert(0, 'Round', np.arange(1, len(fighterB_SigStrikes_Rnds) + 1))
+            fighterB_SigStrikes = fighterB_SigStrikes.iloc[[0]]
+            sigStrikes = pd.concat([fighterA_SigStrikes, fighterB_SigStrikes], axis=0).reset_index(drop=True)
+            sigStrikes.columns = ['Fighter', 'Sig_Str', 'Sig_Str_Perc', 'Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']
+            sigStrikes.insert(0, 'Fight', fightTitle)
+            sigStrikes.insert(0, 'Event', eventTitle)
+            sigStrikes_Rnds = pd.concat([fighterA_SigStrikes_Rnds, fighterB_SigStrikes_Rnds], axis=0).reset_index(drop=True)
+            sigStrikes_Rnds.columns = ['Round', 'Fighter', 'Sig_Str', 'Sig_Str_Perc', 'Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']
+            sigStrikes_Rnds.insert(0, 'Fight', fightTitle)
+            sigStrikes_Rnds.insert(0, 'Event', eventTitle)
+            fightTotals = pd.concat([fightTotals, sigStrikes[['Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']]], axis=1)
+            fightRounds = pd.concat([fightTotals_Rnds, sigStrikes_Rnds[['Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']]], axis=1)
+            # Fight Info
+            fightInfo = pd.DataFrame([[eventTitle, eventDate, eventLocation, fightTitle, fighterA_name, fighterB_name, fightBout, fightMethod, fightRound, fightTime, fightFormat, fightReferee, fightDetails, winner, winnerName]], columns=['Event', 'Date', 'Location', 'Fight', 'Fighter_A', 'Fighter_B', 'Bout', 'Method', 'Round', 'Time', 'Format', 'Referee', 'Details', 'Winner', 'Winner_Name'])
+            eventFightInformation = pd.concat([eventFightInformation, fightInfo], axis=0).reset_index(drop=True)
+            eventFightTotals = pd.concat([eventFightTotals, fightTotals], axis=0).reset_index(drop=True)
+            eventFightRounds = pd.concat([eventFightRounds, fightRounds], axis=0).reset_index(drop=True)
+    return eventFightInformation, eventFightTotals, eventFightRounds
+def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
     fighterListURL_Base = "https://www.ufc.com/athletes/all?gender=All&search=&page="
     fighterListURL_start = "https://www.ufc.com/athletes/all"
     page = requests.get(fighterListURL_start)
@@ -228,12 +302,18 @@ def scrapeFighters(testPages = -1, testFighters = -1):
         for link in links:
             updateString = "Page: " + str(pageNum) + " - Fighter: " + link.split("/")[-1]
             pageBar.set_description(c.Color.BLUE + updateString.ljust(50) + c.Color.RESET)
-            fighterData.append(extractFighterStats(link))
+            fighterData.append(extractFighterStats(link, downloadImages))
     return pd.DataFrame(fighterData)
 
 
 # CONTROL PANEL
-# Fighters_DF = scrapeFighters(testPages=3, testFighters=-1)
-# print(Fighters_DF)
+Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
+Fighters_DF.to_csv('fighters.csv', index=False)
 
-Events_DF = scrapeEvents(testPages=1, testEvents=2)
+# fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=20, testFights=1)
+# print(fightInformation)
+# print(fightTotals)
+# print(FightRounds)
+# fightInformation.to_csv('fightInformation.csv', index=False)
+# fightTotals.to_csv('fightTotals.csv', index=False)
+# FightRounds.to_csv('FightRounds.csv', index=False)
