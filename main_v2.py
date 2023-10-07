@@ -311,12 +311,12 @@ def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
 
 # CONTROL PANEL
 # Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
-# Fighters_DF.to_csv('Data/fighters.csv', index=False)
+# Fighters_DF.to_csv('Raw Data/fighters.csv', index=False)
 
 fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=-1, testFights=-1)
 print(fightInformation)
 print(fightTotals)
 print(FightRounds)
-fightInformation.to_csv('Data/fightInformation.csv', index=False)
-fightTotals.to_csv('Data/fightTotals.csv', index=False)
-FightRounds.to_csv('Data/FightRounds.csv', index=False)
+fightInformation.to_csv('Raw Data/fightInformation.csv', index=False)
+fightTotals.to_csv('Raw Data/fightTotals.csv', index=False)
+FightRounds.to_csv('Raw Data/fightRounds.csv', index=False)
