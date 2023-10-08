@@ -47,7 +47,7 @@ def clean_fighters(df):
     df[cols_to_int] = df[cols_to_int].astype('Int64')
     return df
 def clean_fightInfo(df):
-    pass
+    return df
 def clean_fightRounds(df):
     pass
 def clean_fightTotals(df):
@@ -56,21 +56,23 @@ def clean_fightTotals(df):
 ###############################
 #         Raw Data           #
 ###############################
-fighters_raw = pd.read_csv('Raw Data/fighters.csv')
-# fightInfo_raw = pd.read_csv('Raw Data/fightInformation.csv')
+# fighters_raw = pd.read_csv('Raw Data/fighters.csv')
+fightInfo_raw = pd.read_csv('Raw Data/fightInformation.csv')
 # fightRounds_raw = pd.read_csv('Raw Data/fightRounds.csv')
 # fightTotals_raw = pd.read_csv('Raw Data/fightTotals.csv')
 
 ###############################
 #         Clean Data          #
 ###############################
-fighters_clean = clean_fighters(fighters_raw)
-# fightInfo_clean = clean_fightInfo(fightInfo_raw)
+# fighters_clean = clean_fighters(fighters_raw)
+fightInfo_clean = clean_fightInfo(fightInfo_raw)
 # fightRounds_clean = clean_fightRounds(fightRounds_raw)
 # fightTotals_clean = clean_fightTotals(fightTotals_raw)
 
 ###############################
 #         Save Data           #
 ###############################
-fighters_clean.to_csv('Clean Data/fighters_clean.csv', index=False)
-print(fighters_clean.iloc[:, 0:15])
+# fighters_clean.to_csv('Clean Data/fighters_clean.csv', index=False)
+# print(fighters_clean.iloc[:, 0:15])
+
+print(fightInfo_clean.iloc[:, 6:15])
