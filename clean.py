@@ -27,6 +27,28 @@ def time_to_seconds(time):
             return int(minutes) * 60 + int(seconds)
         else:
             return int(time)
+def format_to_rounds(format):
+    if pd.isnull(format):
+        return np.nan
+    else:
+        match = re.search(r'\d+', format)
+        if match:
+            return int(match.group())
+        else:
+            return np.nan
+def extract_att_landed(string):
+    if pd.isnull(string):
+        return pd.Series([np.nan, np.nan])
+    else:
+        landed, attempted = string.split(' of ')
+        return pd.Series([int(landed), int(attempted)])
+def replace_dashes(string):
+    if pd.isnull(string):
+        return np.nan
+    if '-' in string:
+        return None
+    else:
+        return string
 ################################
 #        Clean Functions       #
 ################################
@@ -47,32 +69,104 @@ def clean_fighters(df):
     df[cols_to_int] = df[cols_to_int].astype('Int64')
     return df
 def clean_fightInfo(df):
+    df['Time_Seconds'] = df['Time'].apply(time_to_seconds)
+    df['Time_Minutes'] = df['Time_Seconds'] / 60
+    df['Round_Format'] = df['Format'].apply(format_to_rounds)
     return df
 def clean_fightRounds(df):
-    pass
+    df['Sig_Str_Landed'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[0])
+    df['Sig_Str_Attempted'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[1])
+    df['Sig_Str_Perc'] = df['Sig_Str_Landed'] / df['Sig_Str_Attempted']
+    df['Total_Str_Landed'] = df['Total_Str'].apply(lambda x: extract_att_landed(x)[0])
+    df['Total_Str_Attempted'] = df['Total_Str'].apply(lambda x: extract_att_landed(x)[1])
+    df['Total_Str_Perc'] = df['Total_Str_Landed'] / df['Total_Str_Attempted']
+    df['TD_Landed'] = df['TD'].apply(lambda x: extract_att_landed(x)[0])
+    df['TD_Attempted'] = df['TD'].apply(lambda x: extract_att_landed(x)[1])
+    df['TD_Perc'] = df['TD_Landed'] / df['TD_Attempted']
+    df['Ctrl'] = df['Ctrl'].apply(replace_dashes)
+    df['Ctrl_Time_Seconds'] = df['Ctrl'].apply(time_to_seconds)
+    df['Ctrl_Time_Minutes'] = df['Ctrl_Time_Seconds'] / 60
+    df['Head_Landed'] = df['Head'].apply(lambda x: extract_att_landed(x)[0])
+    df['Head_Attempted'] = df['Head'].apply(lambda x: extract_att_landed(x)[1])
+    df['Head_Perc'] = df['Head_Landed'] / df['Head_Attempted']
+    df['Body_Landed'] = df['Body'].apply(lambda x: extract_att_landed(x)[0])
+    df['Body_Attempted'] = df['Body'].apply(lambda x: extract_att_landed(x)[1])
+    df['Body_Perc'] = df['Body_Landed'] / df['Body_Attempted']
+    df['Leg_Landed'] = df['Leg'].apply(lambda x: extract_att_landed(x)[0])
+    df['Leg_Attempted'] = df['Leg'].apply(lambda x: extract_att_landed(x)[1])
+    df['Leg_Perc'] = df['Leg_Landed'] / df['Leg_Attempted']
+    df['Distance_Landed'] = df['Distance'].apply(lambda x: extract_att_landed(x)[0])
+    df['Distance_Attempted'] = df['Distance'].apply(lambda x: extract_att_landed(x)[1])
+    df['Distance_Perc'] = df['Distance_Landed'] / df['Distance_Attempted']
+    df['Clinch_Landed'] = df['Clinch'].apply(lambda x: extract_att_landed(x)[0])
+    df['Clinch_Attempted'] = df['Clinch'].apply(lambda x: extract_att_landed(x)[1])
+    df['Clinch_Perc'] = df['Clinch_Landed'] / df['Clinch_Attempted']
+    df['Ground_Landed'] = df['Ground'].apply(lambda x: extract_att_landed(x)[0])
+    df['Ground_Attempted'] = df['Ground'].apply(lambda x: extract_att_landed(x)[1])
+    df['Ground_Perc'] = df['Ground_Landed'] / df['Ground_Attempted']
+    return df
 def clean_fightTotals(df):
-    pass
+    df['Sig_Str_Landed'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[0])
+    df['Sig_Str_Attempted'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[1])
+    df['Sig_Str_Perc'] = df['Sig_Str_Landed'] / df['Sig_Str_Attempted']
+    df['Total_Str_Landed'] = df['Total_Str'].apply(lambda x: extract_att_landed(x)[0])
+    df['Total_Str_Attempted'] = df['Total_Str'].apply(lambda x: extract_att_landed(x)[1])
+    df['Total_Str_Perc'] = df['Total_Str_Landed'] / df['Total_Str_Attempted']
+    df['TD_Landed'] = df['TD'].apply(lambda x: extract_att_landed(x)[0])
+    df['TD_Attempted'] = df['TD'].apply(lambda x: extract_att_landed(x)[1])
+    df['TD_Perc'] = df['TD_Landed'] / df['TD_Attempted']
+    df['Ctrl'] = df['Ctrl'].apply(replace_dashes)
+    df['Ctrl_Time_Seconds'] = df['Ctrl'].apply(time_to_seconds)
+    df['Ctrl_Time_Minutes'] = df['Ctrl_Time_Seconds'] / 60
+    df['Head_Landed'] = df['Head'].apply(lambda x: extract_att_landed(x)[0])
+    df['Head_Attempted'] = df['Head'].apply(lambda x: extract_att_landed(x)[1])
+    df['Head_Perc'] = df['Head_Landed'] / df['Head_Attempted']
+    df['Body_Landed'] = df['Body'].apply(lambda x: extract_att_landed(x)[0])
+    df['Body_Attempted'] = df['Body'].apply(lambda x: extract_att_landed(x)[1])
+    df['Body_Perc'] = df['Body_Landed'] / df['Body_Attempted']
+    df['Leg_Landed'] = df['Leg'].apply(lambda x: extract_att_landed(x)[0])
+    df['Leg_Attempted'] = df['Leg'].apply(lambda x: extract_att_landed(x)[1])
+    df['Leg_Perc'] = df['Leg_Landed'] / df['Leg_Attempted']
+    df['Distance_Landed'] = df['Distance'].apply(lambda x: extract_att_landed(x)[0])
+    df['Distance_Attempted'] = df['Distance'].apply(lambda x: extract_att_landed(x)[1])
+    df['Distance_Perc'] = df['Distance_Landed'] / df['Distance_Attempted']
+    df['Clinch_Landed'] = df['Clinch'].apply(lambda x: extract_att_landed(x)[0])
+    df['Clinch_Attempted'] = df['Clinch'].apply(lambda x: extract_att_landed(x)[1])
+    df['Clinch_Perc'] = df['Clinch_Landed'] / df['Clinch_Attempted']
+    df['Ground_Landed'] = df['Ground'].apply(lambda x: extract_att_landed(x)[0])
+    df['Ground_Attempted'] = df['Ground'].apply(lambda x: extract_att_landed(x)[1])
+    df['Ground_Perc'] = df['Ground_Landed'] / df['Ground_Attempted']
+    return df
 
 ###############################
 #         Raw Data           #
 ###############################
-# fighters_raw = pd.read_csv('Raw Data/fighters.csv')
+fighters_raw = pd.read_csv('Raw Data/fighters.csv')
 fightInfo_raw = pd.read_csv('Raw Data/fightInformation.csv')
-# fightRounds_raw = pd.read_csv('Raw Data/fightRounds.csv')
-# fightTotals_raw = pd.read_csv('Raw Data/fightTotals.csv')
+fightRounds_raw = pd.read_csv('Raw Data/fightRounds.csv')
+fightTotals_raw = pd.read_csv('Raw Data/fightTotals.csv')
 
 ###############################
 #         Clean Data          #
 ###############################
-# fighters_clean = clean_fighters(fighters_raw)
+fighters_clean = clean_fighters(fighters_raw)
 fightInfo_clean = clean_fightInfo(fightInfo_raw)
-# fightRounds_clean = clean_fightRounds(fightRounds_raw)
-# fightTotals_clean = clean_fightTotals(fightTotals_raw)
+fightRounds_clean = clean_fightRounds(fightRounds_raw)
+fightTotals_clean = clean_fightTotals(fightTotals_raw)
 
 ###############################
 #         Save Data           #
 ###############################
-# fighters_clean.to_csv('Clean Data/fighters_clean.csv', index=False)
-# print(fighters_clean.iloc[:, 0:15])
+fighters_clean.to_csv('Clean Data/fighters_clean.csv', index=False)
+# print(fighters_clean.iloc[:, 13:23])
 
-print(fightInfo_clean.iloc[:, 6:15])
+fightInfo_clean.to_csv('Clean Data/fightInfo_clean.csv', index=False)
+# print(fightInfo_clean.iloc[:, 13:23])
+
+fightRounds_clean.to_csv('Clean Data/fightRounds_clean.csv', index=False)
+# print(fightRounds_clean.iloc[:, 16:22])
+
+fightTotals_clean.to_csv('Clean Data/fightTotals_clean.csv', index=False)
+# print(fightTotals_clean.iloc[:, 17:25])
+
+print("Done!")
