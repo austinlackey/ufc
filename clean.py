@@ -72,6 +72,7 @@ def clean_fightInfo(df):
     df['Time_Seconds'] = df['Time'].apply(time_to_seconds)
     df['Time_Minutes'] = df['Time_Seconds'] / 60
     df['Round_Format'] = df['Format'].apply(format_to_rounds)
+    df['Unique_Fight_ID'] = df['Event'] + df['Fight'] + df['Date'].astype(str)
     return df
 def clean_fightRounds(df):
     df['Sig_Str_Landed'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[0])
