@@ -64,7 +64,7 @@ def clean_fighters(df):
     df['Avg_Fight_Time_Minutes'] = df['Avg_Fight_Time_Seconds'] / 60
     df['Sig_Str_Defense'] = df['Sig_Str_Defense'] / 100
     df['Takedown_Defense'] = df['Takedown_Defense'] / 100
-
+    df['Division'] = df['Division'].str.replace(' Division', '')
     cols_to_int = ['Wins', 'Losses', 'Draws', 'Age', 'Sig_Str_Landed', 'Sig_Str_Attempted', 'Standing', 'Clinch', 'Ground', 'Head', 'Body', 'Leg', 'KO/TKO', 'DEC', 'SUB', 'Takedowns_Landed', 'Takedowns_Attempted']
     df[cols_to_int] = df[cols_to_int].astype('Int64')
     return df
@@ -73,6 +73,7 @@ def clean_fightInfo(df):
     df['Time_Minutes'] = df['Time_Seconds'] / 60
     df['Round_Format'] = df['Format'].apply(format_to_rounds)
     df['Unique_Fight_ID'] = df['Event'] + df['Fight'] + df['Date'].astype(str)
+    df['Bout'] = df['Bout'].str.replace(' Bout', '')
     return df
 def clean_fightRounds(df):
     df['Sig_Str_Landed'] = df['Sig_Str'].apply(lambda x: extract_att_landed(x)[0])
