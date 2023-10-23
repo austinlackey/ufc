@@ -13,9 +13,11 @@ def filterFights(fighter):
     return fights.loc[(fights['Fighter_A'] == fighter) | (fights['Fighter_B'] == fighter)]
 
 def winStreak(fighter, print=False):
+    global allFights
     fighterFights = filterFights(fighter) # Get all fights for fighter
     fighterFights = fighterFights.sort_values(by=['Date'], ascending=True).reset_index(drop=True) # Sort by date
     fighterFights['Win'] = np.where(fighterFights['Winner_Name'] == fighter, 1, 0) # Add win column
+    #concat fighterFights with allFights
     if sum(fighterFights['Win']) == 0: # If no wins, then no win streak
         return
     fighterFights['Prev_Win'] = fighterFights['Win'].shift(1) # Add previous win column

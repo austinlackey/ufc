@@ -72,7 +72,6 @@ def clean_fightInfo(df):
     df['Time_Seconds'] = df['Time'].apply(time_to_seconds)
     df['Time_Minutes'] = df['Time_Seconds'] / 60
     df['Round_Format'] = df['Format'].apply(format_to_rounds)
-    df['Unique_Fight_ID'] = df['Event'] + df['Fight'] + df['Date'].astype(str)
     df['Bout'] = df['Bout'].str.replace(' Bout', '')
     return df
 def clean_fightRounds(df):
@@ -140,6 +139,8 @@ def clean_fightTotals(df):
     df['Ground_Perc'] = df['Ground_Landed'] / df['Ground_Attempted']
     return df
 
+
+print("Processing...")
 ###############################
 #         Raw Data           #
 ###############################
