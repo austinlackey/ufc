@@ -8,7 +8,7 @@ streaks = pd.read_csv('Test Data/winStreaks.csv')
 
 # sort streaks by the streak column
 streaks = streaks.sort_values(by=['streak'], ascending=False).reset_index(drop=True)
-streaks = streaks.loc[streaks['streak'] >= 8].reset_index(drop=True)
+streaks = streaks.loc[streaks['streak'] >= 9].reset_index(drop=True)
 
 #filter fights to only inlcude fights between jan 1 2022 and dec 31 2022
 fights['Date'] = pd.to_datetime(fights['Date'])
@@ -26,11 +26,12 @@ fights = pd.concat([fights_A, fights_B]).sort_values(by=['Date']).reset_index(dr
 fights = fights.loc[(fights['Fighter'].isin(streaks['fighter']))].reset_index(drop=True)
 
 # Grouping by fighter and event
-fights = fights.groupby(['Fighter', 'Event']).sum().reset_index().merge(fights.groupby(['Fighter']).size().reset_index(), on='Fighter', how='left').rename(columns={0: 'numFights'})
+fights = fights.groupby(['Fighter', 'Event']).sum().reset_index().merge(fights.groupby(['Fighter']).size().reset_index(), on='Fighter', how='left').rename(columns={0: 'numFights'}).sort_values(by=['Date']).reset_index(drop=True)
 fighters = fighters[fighters['Name'].isin(fights['Fighter'].unique())].reset_index(drop=True).reset_index()
 
 # Adding Ranks
-fightsOriginal = pd.DataFrame(fights['Event'].unique(), columns=['Event']).reset_index()
+# return fights with rows for each event that are unique and sorted by date
+fightsOriginal = pd.DataFrame(fights['Event'].unique(), columns=['Event']).reset_index().merge(fights[['Event', 'Date']].drop_duplicates(), on='Event', how='left').sort_values(by=['Date']).reset_index(drop=True)
 fights = fights.merge(fighters[['index', 'Name']], left_on='Fighter', right_on='Name', how='left').drop(columns=['Name']).rename(columns={'index': 'fighterRank'})
 fights['fighterRank'] = fights['fighterRank'].astype(pd.Int64Dtype())
 fights = fights.merge(fightsOriginal[['Event', 'index']], on='Event', how='left').rename(columns={'index': 'eventRank'}).reset_index(drop=True)
