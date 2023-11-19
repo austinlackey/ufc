@@ -1,3 +1,5 @@
 images/
-data/Legacy Data/
 Dashboard/
+.vscode/
+__pycache__/
+.DS_Store
