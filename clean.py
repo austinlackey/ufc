@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
+import colors as c
 
 ###############################
 # ### Helper Functions ###   #
@@ -140,7 +141,7 @@ def clean_fightTotals(df):
     return df
 
 
-print("Processing...")
+print(c.Color.ORANGE + "Processing..." + c.Color.RESET)
 ###############################
 #         Raw Data           #
 ###############################
@@ -172,4 +173,4 @@ fightRounds_clean.to_csv('Clean Data/fightRounds_clean.csv', index=False)
 fightTotals_clean.to_csv('Clean Data/fightTotals_clean.csv', index=False)
 # print(fightTotals_clean.iloc[:, 17:25])
 
-print("Done!")
+print(c.Color.GREEN + "Done!" + c.Color.RESET)

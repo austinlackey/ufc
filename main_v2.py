@@ -6,7 +6,6 @@ from datetime import datetime, date, time
 import re
 import colors as c
 from tqdm import tqdm
-import string
 
 print(c.Color.RED + "UFC Scraper v2.0" + c.Color.RESET)
 domain = "https://www.ufc.com"
@@ -162,14 +161,21 @@ def extractFighterStats(fighterURL, downloadImages = False):
         fighterProfileImage = None
         fighterData.update({'hasImage': False})
     return fighterData
-def scrapeEvents(testEvents = -1, testFights = -1):
+def scrapeEvents(testEvents = -1, testFights = -1, update=False):
     URL = "http://www.ufcstats.com/statistics/events/completed?page=all"
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
     upcomingEvents = soup.find_all('img', class_='b-statistics__icon') # List of upcoming events
     eventLinks = [link.get('href') for link in soup.find('table', class_='b-statistics__table-events').find_all('a')] # All event links
     eventLinks = eventLinks[len(upcomingEvents):] # Remove upcoming events from list
-    if testEvents == -1:
+    if update:
+        pastLinks = pd.read_csv('Raw Data/fightInformation.csv')['Event_Link'].unique().tolist()
+        eventLinks = [link for link in eventLinks if link not in pastLinks]
+        if len(eventLinks) == 0:
+            print(c.Color.GREEN + "No new events to update" + c.Color.RESET)
+            return None, None, None
+        print(c.Color.ORANGE + "Updating " + str(len(eventLinks)) + " events" + c.Color.RESET)
+    elif testEvents == -1:
         numEvents = len(eventLinks)
         print(str(numEvents) + " events")
     else:
@@ -274,10 +280,17 @@ def scrapeEvents(testEvents = -1, testFights = -1):
             fightTotals = pd.concat([fightTotals, sigStrikes[['Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']]], axis=1)
             fightRounds = pd.concat([fightTotals_Rnds, sigStrikes_Rnds[['Head', 'Body', 'Leg', 'Distance', 'Clinch', 'Ground']]], axis=1)
             # Fight Info
-            fightInfo = pd.DataFrame([[eventTitle, eventDate, eventLocation, fightTitle, fighterA_name, fighterB_name, fightBout, fightMethod, fightRound, fightTime, fightFormat, fightReferee, fightDetails, winner, winnerName]], columns=['Event', 'Date', 'Location', 'Fight', 'Fighter_A', 'Fighter_B', 'Bout', 'Method', 'Round', 'Time', 'Format', 'Referee', 'Details', 'Winner', 'Winner_Name'])
+            fightInfo = pd.DataFrame([[eventTitle, eventDate, eventLocation, fightTitle, fighterA_name, fighterB_name, fightBout, fightMethod, fightRound, fightTime, fightFormat, fightReferee, fightDetails, winner, winnerName, event]], columns=['Event', 'Date', 'Location', 'Fight', 'Fighter_A', 'Fighter_B', 'Bout', 'Method', 'Round', 'Time', 'Format', 'Referee', 'Details', 'Winner', 'Winner_Name', 'Event_Link'])
             eventFightInformation = pd.concat([eventFightInformation, fightInfo], axis=0).reset_index(drop=True)
             eventFightTotals = pd.concat([eventFightTotals, fightTotals], axis=0).reset_index(drop=True)
             eventFightRounds = pd.concat([eventFightRounds, fightRounds], axis=0).reset_index(drop=True)
+    if update:
+        oldFightInformation = pd.read_csv('Raw Data/fightInformation.csv')
+        oldFightTotals = pd.read_csv('Raw Data/fightTotals.csv')
+        oldFightRounds = pd.read_csv('Raw Data/fightRounds.csv')
+        eventFightInformation = pd.concat([oldFightInformation, eventFightInformation], axis=0).reset_index(drop=True)
+        eventFightTotals = pd.concat([oldFightTotals, eventFightTotals], axis=0).reset_index(drop=True)
+        eventFightRounds = pd.concat([oldFightRounds, eventFightRounds], axis=0).reset_index(drop=True)
     return eventFightInformation, eventFightTotals, eventFightRounds
 def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
     fighterListURL_Base = "https://www.ufc.com/athletes/all?gender=All&search=&page="
@@ -310,13 +323,15 @@ def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
 
 
 # CONTROL PANEL
-# Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=True)
+fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=-1, testFights=-1, update=True)
+if fightInformation is not None and fightTotals is not None and FightRounds is not None:
+    print(fightInformation)
+    print(fightTotals)
+    print(FightRounds)
+    print(c.Color.CYAN + "Saving data..." + c.Color.RESET)
+    fightInformation.to_csv('Raw Data/fightInformation.csv', index=False)
+    fightTotals.to_csv('Raw Data/fightTotals.csv', index=False)
+    FightRounds.to_csv('Raw Data/fightRounds.csv', index=False)
+    print(c.Color.GREEN + "Data saved." + c.Color.RESET)
+# Fighters_DF = scrapeFighters(testPages=-1, testFighters=-1, downloadImages=False)
 # Fighters_DF.to_csv('Raw Data/fighters.csv', index=False)
-
-fightInformation, fightTotals, FightRounds = scrapeEvents(testEvents=-1, testFights=-1)
-print(fightInformation)
-print(fightTotals)
-print(FightRounds)
-fightInformation.to_csv('Raw Data/fightInformation.csv', index=False)
-fightTotals.to_csv('Raw Data/fightTotals.csv', index=False)
-FightRounds.to_csv('Raw Data/fightRounds.csv', index=False)
