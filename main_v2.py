@@ -291,6 +291,8 @@ def scrapeEvents(testEvents = -1, testFights = -1, update=False):
         eventFightInformation = pd.concat([oldFightInformation, eventFightInformation], axis=0).reset_index(drop=True)
         eventFightTotals = pd.concat([oldFightTotals, eventFightTotals], axis=0).reset_index(drop=True)
         eventFightRounds = pd.concat([oldFightRounds, eventFightRounds], axis=0).reset_index(drop=True)
+        eventFightInformation['Date'] = pd.to_datetime(eventFightInformation['Date'], format='mixed')
+        eventFightInformation = eventFightInformation.sort_values(by=['Date'], ascending=False).reset_index(drop=True)
     return eventFightInformation, eventFightTotals, eventFightRounds
 def scrapeFighters(testPages = -1, testFighters = -1, downloadImages = False):
     fighterListURL_Base = "https://www.ufc.com/athletes/all?gender=All&search=&page="
