@@ -24,3 +24,96 @@ One of the most interesting aspects of the UFC is the streaks that fighters go o
 # Methodology
 My methodology for this project is explained in detail in the following
 [Medium article](https://medium.com/@austin-lackey/unveiling-dominance-a-data-science-journey-into-ufc-fighter-streaks-scraping-manipulating-and-78dd5402e9ae)
+
+# Data Collected
+
+## Fighter Information
+- **URL**
+- **Division**
+- **Nickname**
+- **Name**
+- **Wins**
+- **Losses**
+- **Draws**
+- **Status**
+- **Place of Birth**
+- **Age**
+- **Height**
+- **Weight**
+- **Octagon Debut**
+- **Significant Strikes Landed**
+- **Significant Strikes Attempted**
+- **Significant Strikes Landed Per Minute**
+- **Significant Strikes Absorbed Per Minute**
+- **Takedown Average Per 15 Minutes**
+- **Submission Average Per 15 Minutes**
+- **Significant Strike Defense**
+- **Takedown Defense**
+- **Knockdown Average Per 15 Minutes**
+- **Average Fight Time**
+- **Standing**
+- **Clinch**
+- **Ground**
+- **Head**
+- **Body**
+- **Leg**
+- **Knockout/Technical Knockout**
+- **Decision**
+- **Submission**
+- **Has Image**
+- **Dana White's Contender Series**
+- **Takedowns Landed**
+- **Takedowns Attempted**
+- **Fighting Style**
+- **Reach**
+- **Trains at**
+
+## Event Information
+- **Event**
+- **Date**
+- **Location**
+- **Fight**
+- **Fighter A**
+- **Fighter B**
+- **Bout**
+- **Method**
+- **Round**
+- **Time**
+- **Format**
+- **Referee**
+- **Details**
+- **Winner**
+- **Winner Name**
+- **Event Link**
+
+## Fight Statistics
+- **Event**
+- **Fight**
+- **Round**
+- **Fighter**
+- **Knockdowns**
+- **Significant Strikes**
+- **Significant Strikes Percentage**
+- **Total Strikes**
+- **Takedowns**
+- **Takedown Percentage**
+- **Submission Attempts**
+- **Reversals**
+- **Control**
+- **Head**
+- **Body**
+- **Leg**
+- **Distance**
+- **Clinch**
+- **Ground**
+
+> [!NOTE]
+> Fighter images are also collected, but are not included in this repository due to size constraints.
+
+# Files
+
+* `main_v2.py` - The main Python script that scrapes online data. Functions allow for fine-tuning of data collection, what data to collect, and how to collect it.
+* `clean.py` - The Python script that merges and cleans the data. Reads data from the `Raw Data` folder, and outputs in the `Clean Data` folder.
+* `test_deletion.py` - A Python script that deletes certain fights/events from the data. This is useful for testing the update functionality.
+* `colors.py` - Python class for color-coding text in command line.
+* `All other files` - These are the files that are used for ad-hoc analysis, and are not necessary for the main project.
