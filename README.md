@@ -1,4 +1,4 @@
-![UFC Streaks](Medium/UFC 8.png)
+![UFC Streaks](https://github.com/austinlackey/ufc/blob/main/Medium/UFC%208.png)
 # Visualizing UFC Streaks
 This project visualizes the streaks of the UFC fighters with the most wins in the history of the organization. This project utilized a full-stack approach from data scraping/collection to manipulation and visualization. The data was collected from two different sources, then merged and cleaned using Python. The data was then visualized using Tableau and Adobe Illustrator/Photoshop for eye-catching elements.
 
@@ -14,11 +14,12 @@ This project visualizes the streaks of the UFC fighters with the most wins in th
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 
 
-## Motivation
+# Motivation
 One of the most interesting aspects of the UFC is the streaks that fighters go on. Whether it be a winning streak or a losing streak, these streaks can define a fighter's career. To visualize these streaks, we need data. However, data that is easily accessible is never up-to-date, accurate, or complete. API endpoints aren't always available, and often requires a subscription. My goal was to intelligently scrape data from multiple online sources, merge them, and visualize the data in a way that is both informative and visually appealing.
 
 # :sparkles: Innovative Emphasis
 **I designed this project to be a full-stack project that provides an efficient workflow while underscoring value. Data for this project is easily updated and maintained, with the run of a single Python script. We can intelligently compare local data with online additions, and only collect new data. Data can then be automatically cleaned and merged, and connected to Tableau for visualization. There is no need for manual updates.**
 
-### Data Collection
-
+# Methodology
+My methodology for this project is explained in detail in the following
+[Medium article](https://medium.com/@austin-lackey/unveiling-dominance-a-data-science-journey-into-ufc-fighter-streaks-scraping-manipulating-and-78dd5402e9ae)
